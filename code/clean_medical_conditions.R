@@ -30,11 +30,13 @@ table(Medical_Conditions_dfs$year)
 
 #icd codes
 
-acne_icd <- c()
+acne_icd <- c('L70', '706')
 
-eczema_icd <- c('L20')
+eczema_icd <- c('L20', '691', '692')
 
-psoriasis_icd <- c()
+psoriasis_icd <- c('L40' , '696')
+
+hair_loss_icd <- c('L63', 'L64', 'L65', 'L66', '704')
 
 icd_10_fx <- function()
 {
@@ -93,3 +95,6 @@ icd_9_fx <- function()
   709 Other disorders of skin and subcutaneous tissue
   
 }
+
+
+
