@@ -73,17 +73,25 @@ derm_visits <- derm_visits %>%
   mutate(sf = coalesce(OBSF20X, OBSF21X, outpatient_sf_20, outpatient_sf_21),
          xp = coalesce(OBXP20X, OBXP21X, outpatient_xp_20, outpatient_xp_21))
 
+derm_visits <- derm_visits %>% 
+  mutate(tele_sf = ifelse(derm_visits$TELEHEALTHFLAG == 1, derm_visits$sf, 0),
+         tele_xp = ifelse(derm_visits$TELEHEALTHFLAG == 1, derm_visits$xp, 0))
+
 derm_visits$visit <- 1
 
 derm_visits$telehealth <- ifelse(derm_visits$TELEHEALTHFLAG == 1, 1, 0)
 
 
 derm_visits_subset <- derm_visits %>% 
-  select(DUPERSID, year, sf, xp, visit, telehealth) %>% 
+  select(DUPERSID, year, sf, xp, visit, telehealth, tele_sf, tele_xp) %>% 
   group_by(DUPERSID, year) %>% 
   summarize(total_visits = sum(visit),
             total_telehealth_visits = sum(telehealth),
             oop = sum(sf),
-            total_spend = sum(xp))
+            total_spend = sum(xp),
+            tele_oop = sum(tele_sf),
+            tele_total_spend = sum(tele_xp))
 
 write_dta(derm_visits, "F:/projects/telederm/data/derm_visits.dta")
+
+write_dta(derm_visits_subset, "F:/projects/telederm/data/summarized_derm_visits.dta")
