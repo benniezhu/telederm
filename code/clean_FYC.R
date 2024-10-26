@@ -3,7 +3,7 @@ library(haven)
 
 FYC_dfs <- list()
 #load the data in
-for (year in 2020:2021){
+for (year in 2020:2022){
   file_name <- paste0("F:/data/MEPS/FullYearConsolidated/FYC_", year, ".dta")
   
   df <- read_dta(file_name)
@@ -24,7 +24,7 @@ for (i in seq_along(FYC_dfs)){
 }
 
 # Insurance 
-year0320 <- c("20", "21")
+year0320 <- c("20", "21", "22")
 
 # this loop creats a bunch of insurance variables
 for (i in seq_along(FYC_dfs)){
@@ -133,7 +133,7 @@ FYC_dfs <- FYC_dfs %>%
 
 
 FYC_dfs <- FYC_dfs %>% 
-  mutate(POVCAT = coalesce(POVCAT20, POVCAT21))
+  mutate(POVCAT = coalesce(POVCAT20, POVCAT21, POVCAT22))
 
 #make 4 catagory poverty catagory 
 
@@ -147,7 +147,7 @@ FYC_dfs <- FYC_dfs %>%
 
 #age 
 FYC_dfs <- FYC_dfs %>% 
-  mutate(age = coalesce(AGE20X, AGE21X))
+  mutate(age = coalesce(AGE20X, AGE21X, AGE22X))
 
 FYC_dfs <- FYC_dfs %>% 
   mutate(u18 = ifelse(age <18, 1, 0))
@@ -168,7 +168,7 @@ FYC_dfs <- FYC_dfs %>%
 #coalease region variables
 
 FYC_dfs <- FYC_dfs %>% 
-  mutate(region = coalesce(REGION20, REGION21))
+  mutate(region = coalesce(REGION20, REGION21, REGION22))
 
 FYC_dfs$region[FYC_dfs$region == -1] <- NA
 #insurance
@@ -179,7 +179,7 @@ FYC_dfs <- FYC_dfs %>%
 
 insurance_prefixes <- c('MCD','PUB', 'INS')
 month_prefixes <- c('JA', 'FE', 'MA', 'AP', 'MY', 'JU', 'JL', 'AU', 'SE', 'OC', 'NO', 'DE')
-year_suffix <- c(20, 21)
+year_suffix <- c(20, 21, 22)
 
 for (insurance in insurance_prefixes){
   for (month in month_prefixes){
@@ -233,7 +233,7 @@ for (insurance in insurance_prefixes2){
 
 
 FYC_dfs <- FYC_dfs %>% 
-  mutate(MCDEV = coalesce(MCDEV20, MCDEV21))
+  mutate(MCDEV = coalesce(MCDEV20, MCDEV21, MCDEV22))
 
 #finish making insurance variable
 #paper used following insurance catagories
@@ -245,14 +245,14 @@ FYC_dfs <- FYC_dfs %>%
 #coalease medicare advantage aka medicare managed care (MCRPHO only available 06-present)
 
 FYC_dfs <- FYC_dfs %>% 
-  mutate(MCRPHO = coalesce(MCRPHO20, MCRPHO21))
+  mutate(MCRPHO = coalesce(MCRPHO20, MCRPHO21, MCRPHO22))
 
 FYC_dfs <- FYC_dfs %>% 
-  mutate(UNINS = coalesce(UNINS20, UNINS21))
+  mutate(UNINS = coalesce(UNINS20, UNINS21, UNINS22))
 
 
 FYC_dfs <- FYC_dfs %>% 
-  mutate(INSCOV = coalesce(INSCOV20, INSCOV21))
+  mutate(INSCOV = coalesce(INSCOV20, INSCOV21, INSCOV22))
 
 FYC_dfs$uninsured <- ifelse(FYC_dfs$UNINS == 1, 1, 0)
 
@@ -275,7 +275,7 @@ FYC_dfs <- FYC_dfs %>%
 
 
 FYC_dfs <- FYC_dfs %>% 
-  mutate(perwt = coalesce(PERWT20F, PERWT21F))
+  mutate(perwt = coalesce(PERWT20F, PERWT21F, PERWT22F))
 
 write_dta(FYC_dfs, "F:/projects/telederm/data/FYC_dfs.dta")
 

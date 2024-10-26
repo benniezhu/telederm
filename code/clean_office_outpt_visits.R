@@ -3,7 +3,7 @@ library(haven)
 
 office_visits <- list()
 outpatient_visits <- list()
-for (year in 2020:2021){
+for (year in 2020:2022){
   file_name <- paste0('F:/data/MEPS/Outpatient/Outpatient', year, '.dta')
   df <- read_dta(file_name)
   outpatient_visits[[year]] <- df
@@ -12,7 +12,7 @@ for (year in 2020:2021){
 }
 
 
-for (year in 2020:2021){
+for (year in 2020:2022){
   file_name <- paste0('F:/data/MEPS/OfficeBased/OfficeBased', year, '.dta')
   df <- read_dta(file_name)
   office_visits[[year]] <- df
@@ -66,12 +66,14 @@ derm_visits <- derm_visits %>%
 derm_visits <- derm_visits %>% 
   mutate(outpatient_sf_20 = OPFSF20X + OPDSF20X,
          outpatient_sf_21 = OPFSF21X + OPDSF21X,
+         outpatient_sf_22 = OPFSF22X + OPDSF22X,
          outpatient_xp_20 = OPFXP20X + OPDXP20X,
-         outpatient_xp_21 = OPFXP21X + OPDXP21X)
+         outpatient_xp_21 = OPFXP21X + OPDXP21X,
+         outpatient_xp_22 = OPFXP22X + OPDXP22X)
 
 derm_visits <- derm_visits %>% 
-  mutate(sf = coalesce(OBSF20X, OBSF21X, outpatient_sf_20, outpatient_sf_21),
-         xp = coalesce(OBXP20X, OBXP21X, outpatient_xp_20, outpatient_xp_21))
+  mutate(sf = coalesce(OBSF20X, OBSF21X, OBSF22X, outpatient_sf_20, outpatient_sf_21, outpatient_sf_22),
+         xp = coalesce(OBXP20X, OBXP21X, OBXP22X, outpatient_xp_20, outpatient_xp_21, outpatient_xp_22))
 
 derm_visits <- derm_visits %>% 
   mutate(tele_sf = ifelse(derm_visits$TELEHEALTHFLAG == 1, derm_visits$sf, 0),

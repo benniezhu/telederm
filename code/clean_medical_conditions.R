@@ -1,11 +1,10 @@
 library(tidyverse)
 library(haven)
-library(MEPS)
 #load data
 
 Medical_Conditions_dfs <- list()
 
-for (year in 2020:2021){
+for (year in 2020:2022){
   file_name <- paste0('F:/data/MEPS/Medical_Conditions/MedicalConditions', year, '.dta')
   df <- read_dta(file_name)
   Medical_Conditions_dfs[[year]] <- df
@@ -138,11 +137,17 @@ Medical_Conditions_dfs_subset <- Medical_Conditions_dfs %>%
             rash_dx = max(rash_dx, na.rm = TRUE),
             skin_cancer_dx = max(skin_cancer_dx, na.rm = TRUE))
 
+#combine dermatitises 
+Medical_Conditions_dfs_subset$dermatitis_dx <- ifelse(Medical_Conditions_dfs_subset$eczema_dx == 1 |
+                                                        Medical_Conditions_dfs_subset$unspecified_dermatitis_dx == 1 |
+                                                        Medical_Conditions_dfs_subset$allergic_dermatitis_dx == 1 |
+                                                        Medical_Conditions_dfs_subset$seb_dermatitis_dx == 1 , 1, 0)
+
 # List of all _dx variables
 dx_variables <- c("acne_dx", "eczema_dx", "psoriasis_dx", "hair_loss_dx", "seb_dermatitis_dx", 
                   "allergic_dermatitis_dx", "pruritus_dx", "unspecified_dermatitis_dx", 
                   "uticaria_dx", "nail_dx", "rosacea_dx", "pigmentation_dx", 
-                  "atrophic_dx", "hypertrophic_dx", "rash_dx", "skin_cancer_dx")
+                  "atrophic_dx", "hypertrophic_dx", "rash_dx", "skin_cancer_dx", "dermatitis_dx")
 
 # Loop through each _dx variable and print the table
 for (dx in dx_variables) {
