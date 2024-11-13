@@ -75,6 +75,21 @@ derm_visits <- derm_visits %>%
   mutate(sf = coalesce(OBSF20X, OBSF21X, OBSF22X, outpatient_sf_20, outpatient_sf_21, outpatient_sf_22),
          xp = coalesce(OBXP20X, OBXP21X, OBXP22X, outpatient_xp_20, outpatient_xp_21, outpatient_xp_22))
 
+summary(derm_visits$sf)
+summary(derm_visits$xp)
+
+derm_visits <- derm_visits %>% 
+  mutate(sf = case_when(year == 2021 ~ sf * 0.97582,
+                                       year == 2020 ~ sf * 0.956494,
+                        TRUE ~ sf),
+         xp = case_when(year == 2021 ~ xp * 0.97582,
+                                       year == 2020 ~ xp * 0.956494,
+                        TRUE ~ xp))
+
+summary(derm_visits$sf)
+summary(derm_visits$xp)
+
+
 derm_visits <- derm_visits %>% 
   mutate(tele_sf = ifelse(derm_visits$TELEHEALTHFLAG == 1, derm_visits$sf, 0),
          tele_xp = ifelse(derm_visits$TELEHEALTHFLAG == 1, derm_visits$xp, 0))
