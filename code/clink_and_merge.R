@@ -60,8 +60,8 @@ derm_FYC <- full_join(derm_visits, FYC_dfs, by = c('DUPERSID', 'year'))
 derm_summary_FYCs <- left_join(FYC_dfs, summarized_derm_visits, by = c('DUPERSID', 'year')) %>% 
   left_join(summarized_medical_conditions, by = c('DUPERSID' , 'year')) %>% 
   left_join(charlson_score, by = c('DUPERSID', 'year'))
+write_dta(derm_summary_FYCs, 'F:/projects/telederm/data/ml_ready/derm_summary_FYC.dta')
 
 
 write_dta(derm_FYC, "F:/projects/telederm/data/ml_ready/derm_FYC.dta")
 
-write_dta(derm_summary_FYCs, 'F:/projects/telederm/data/ml_ready/derm_summary_FYC.dta')
