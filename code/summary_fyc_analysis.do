@@ -1,4 +1,4 @@
-log using "F:/projects/telederm/output/summary_fyc_analysis.log", replace 
+log using "F:/projects/telederm/output/summary_fyc_analysis_12_24_2024.log", replace 
 
 use "F:/projects/telederm/data/ml_ready/derm_summary_FYC.dta", clear 
 
@@ -23,7 +23,6 @@ label values edu edu_lbl
 label values race race_lbl
 
 
-
 gen telemed = 0
 replace telemed = 1 if total_telehealth_visits > 0
 
@@ -40,7 +39,7 @@ svy: mean $idvars
 
 *svy: logit telemed age age2 i.year i.race i.insurance i.region i.poverty acne_dx eczema_dx psoriasis_dx hair_loss_dx seb_dermatitis_dx pruritus_dx unspecified_dermatitis_dx nail_dx pigmentation_dx atrophic_dx rash_dx, or
 
-global id_vars "age age2 i.year i.SEX i.race i.edu i.region i.poverty i.insurance acne_dx psoriasis_dx hair_loss_dx pruritus_dx dermatitis_dx charlson_score"
+global id_vars "age age2 i.year i.SEX i.race i.edu i.region i.poverty i.insurance i.acne_dx i.psoriasis_dx i.hair_loss_dx i.pruritus_dx i.dermatitis_dx charlson_score"
 
 * list of covaritates that eddie reccomended 
 
@@ -52,23 +51,23 @@ svy: logit telemed $id_vars , or
 
 svy: twopm tele_oop $id_vars ,  f(probit) s(glm, link(log) family(gamma))
 
-margins insurance edu poverty race SEX
-margins, dydx( insurance edu poverty race SEX)
+margins insurance edu poverty race SEX region acne_dx psoriasis_dx hair_loss_dx pruritus_dx dermatitis_dx 
+margins, dydx(year insurance edu poverty race SEX region acne_dx psoriasis_dx hair_loss_dx pruritus_dx dermatitis_dx charlson_score)
 
 svy: twopm tele_total_spend $id_vars ,  f(probit) s(glm, link(log) family(gamma))
-margins insurance edu poverty race
-margins, dydx( insurance edu poverty race SEX)
+margins insurance edu poverty race SEX region acne_dx psoriasis_dx hair_loss_dx pruritus_dx dermatitis_dx 
+margins, dydx(year insurance edu poverty race SEX region acne_dx psoriasis_dx hair_loss_dx pruritus_dx dermatitis_dx charlson_score)
 
 svy: glm tele_oop $id_vars , family(gamma) link(log)
 
-margins insurance edu poverty race SEX
-margins, dydx( insurance edu poverty race SEX)
+margins insurance edu poverty race SEX region acne_dx psoriasis_dx hair_loss_dx pruritus_dx dermatitis_dx
+margins, dydx(year insurance edu poverty race SEX region acne_dx psoriasis_dx hair_loss_dx pruritus_dx dermatitis_dx charlson_score)
 
 
 svy: glm tele_total_spend $id_vars , family(gamma) link(log)
 
-margins insurance edu poverty race SEX
-margins, dydx( insurance edu poverty race SEX)
+margins insurance edu poverty race SEX region acne_dx psoriasis_dx hair_loss_dx pruritus_dx dermatitis_dx 
+margins, dydx(year insurance edu poverty race SEX region acne_dx psoriasis_dx hair_loss_dx pruritus_dx dermatitis_dx charlson_score)
 
 *table 1 code 
 
