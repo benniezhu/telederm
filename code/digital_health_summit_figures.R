@@ -71,7 +71,7 @@ ggplot(tele_spending_mfx, aes(x = dy_dx, y = Level, color = Category)) +
   # Use space = "free_y" to keep the groupings tight
   facet_grid(Category ~ spending_type, scales = "free", space = "free_y") +
   labs(
-    title = "Marginal Effects on Telehealth Spending",
+    title = "Marginal Effects on Teledermatology Spending",
     subtitle = "Two Part Models, 95% CI",
     x = "Marginal Effect (Change in $)",
     y = NULL,
@@ -89,3 +89,109 @@ ggplot(tele_spending_mfx, aes(x = dy_dx, y = Level, color = Category)) +
 
 ggsave("F:/projects/telederm/output/two_pm_plot.png", 
 width = 12, height = 10, units = 'in', dpi = 400)
+
+
+##########################################
+
+#logistic regression coefs
+
+telemed_data <- tibble(
+  Variable = c("age", "age2", "2021", "2022", "Male", "Black", "Hispanic", "Other Race",
+               "HS Diploma", "Bachelor or More", "Midwest", "South", "West",
+               "100%-199% FPL", "200%-399% FPL", "400%+ FPL", "Medicaid", 
+               "Medicare", "Medicare Advantage", "Uninsured 1+ Month", "Other Insurance", 
+               "Acne", "Psoriasis", "Hair Loss", "Pruritus", "Dermatitis", "Charlson Score", 
+               "Constant"),
+  Odds_Ratio = c(0.9430985, 1.000477, 2.725295, 1.525384, 0.9984264, 6.467061, 5.519723, 3.415515, 
+                 2.046686, 5.470094, 1.009454, 0.8942062, 2.942355, 0.6875718, 1.10214, 1.119851, 
+                 0.8461868, 0.8160815, 0.844796, 2.029489, 1.264022, 5.49117, 3.4714, 1.171245, 
+                 1.844603, 2.642832, 0.8539511, 0.0034279),
+  Std_Err = c(0.045876, 0.0004886, 0.9266525, 0.5971661, 0.2771, 2.978739, 3.723172, 1.333083, 
+              1.21533, 3.935941, 0.5802336, 0.4727729, 1.339935, 0.3754649, 0.5422327, 0.4979834, 
+              0.4571995, 0.6861477, 0.4733853, 1.069933, 1.395739, 2.019579, 1.885915, 0.9238613, 
+              1.576175, 0.9722306, 0.1249745, 0.0036361),
+  t_value = c(-1.20, 0.98, 2.95, 1.08, -0.01, 4.05, 2.53, 3.15, 1.21, 2.36, 0.02, -0.21, 2.37, 
+              -0.69, 0.20, 0.25, -0.31, -0.24, -0.30, 1.34, 0.21, 4.63, 2.29, 0.20, 0.72, 2.64, 
+              -1.08, -5.35),
+  p_value = c(0.230, 0.330, 0.003, 0.282, 0.995, 0.000, 0.012, 0.002, 0.229, 0.019, 0.987, 0.833, 
+              0.019, 0.493, 0.843, 0.799, 0.757, 0.809, 0.764, 0.181, 0.832, 0.000, 0.023, 0.841, 
+              0.474, 0.009, 0.282, 0.000),
+  CI_Lower = c(0.8569437, 0.9995154, 1.395075, 0.7055766, 0.5780173, 2.610703, 1.46219, 1.583557, 
+               0.6355869, 1.326108, 0.325435, 0.3156738, 1.200048, 0.234566, 0.4182617, 0.466469, 
+               0.2919757, 0.155818, 0.2802106, 0.7185913, 0.14366, 2.661335, 1.190825, 0.2477451, 
+               0.3428255, 1.280645, 0.6401212, 0.0004244),
+  CI_Upper = c(1.037915, 1.00144, 5.323896, 3.297723, 1.724612, 16.01977, 20.83679, 7.3668, 
+               6.590639, 22.56372, 3.131183, 2.53301, 7.214256, 2.015445, 2.904192, 2.688426, 
+               2.452369, 4.274148, 2.546942, 5.731805, 11.12175, 11.33001, 10.11956, 5.537204, 
+               9.925055, 5.453936, 1.13921, 0.0276871)
+) %>%
+rename(Level = Variable) %>%
+mutate(Category = case_when(
+    Level %in% c("2021", "2022") ~ "Time",
+    Level %in% c("age", "age2", "Male", "Black", "Hispanic", "Other Race") ~ "Demographics",
+    Level %in% c("HS Diploma", "Bachelor or More") ~ "Education",
+    Level %in% c("100%-199% FPL", "200%-399% FPL", "400%+ FPL") ~ "Income (FPL)",
+    Level %in% c("Midwest", "South", "West") ~ "Region",
+    Level %in% c("Medicaid", "Medicare", "Medicare Advantage", "Uninsured 1+ Month", "Other Insurance") ~ "Insurance",
+    TRUE ~ "Health/Condition"
+  )) %>%
+  filter(Category != "Health/Condition")
+
+
+# 1. Prepare the data and define the exact ordering
+cat_order <- c("Time", "Demographics", "Education", "Income (FPL)", "Region", "Insurance")
+
+# Define internal order for levels (including your Demographic preference)
+level_order_logistic <- c(
+  "2021", "2022",                                      # Time
+  "age", "age2", "Male", "Black", "Hispanic", "Other Race", # Demographics
+  "HS Diploma", "Bachelor or More",                    # Education
+  "100%-199% FPL", "200%-399% FPL", "400%+ FPL",       # Income
+  "Midwest", "South", "West",                          # Region
+  "Medicaid", "Medicare", "Medicare Advantage",        # Insurance
+  "Uninsured 1+ Month", "Other Insurance"
+)
+
+plot_data <- telemed_data %>%
+  # Filter out 'Constant' as it skews the scale and is usually not plotted
+  filter(Level != "Constant") %>% filter(Level != "age") %>% filter(Level != "age2") %>%
+  mutate(
+    Category = factor(Category, levels = cat_order),
+    Level = factor(Level, levels = rev(level_order_logistic)) # rev() so first item is at top
+  )
+
+# 2. Create the Plot
+ggplot(plot_data, aes(x = Odds_Ratio, y = Level, color = Category)) +
+  # Add vertical reference line at 1
+  geom_vline(xintercept = 1, linetype = "dashed", color = "black", alpha = 0.5) +
+  # Point and Confidence Intervals
+  geom_point(size = 3) +
+  geom_errorbarh(aes(xmin = CI_Lower, xmax = CI_Upper), , height = 0.3, size = 0.9) +
+  # Faceting to group by category
+  facet_grid(Category ~ ., scales = "free_y", space = "free_y") +
+  # Use Log scale for X axis (standard for Odds Ratios)
+  scale_x_log10(breaks = c(0.1, 0.5, 1, 2, 5, 10, 20)) +
+  labs(
+    title = "Odds Ratios for Teledermatology Usage",
+    x = "Odds Ratio (Log Scale)",
+    y = NULL,
+    color = "Variable Group",
+    caption = 'Reference groups for insurance, race/ethnicity, sex, poverty categories,
+     year and census region were private insurance, non-Hispanic white, female,
+      <100% FPL, 2020, and Northeast'
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    plot.caption = element_text(hjust = 1, size = 10, face = "italic"),
+    strip.text.y = element_text(angle = 0, face = "bold"),
+    strip.background = element_rect(fill = "grey95"),
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_text(size = 9)
+  ) +
+  guides(color = guide_legend(override.aes = list(size = 1)))
+  
+ggsave("F:/projects/telederm/output/logistic_plot.png", 
+width = 12, height = 10, units = 'in', dpi = 400)
+
+
